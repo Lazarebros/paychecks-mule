@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:core="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+		http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd">
+
+	<context:property-placeholder location="file:${esb.conf.path}/${esb.env}-mule-paychecks.properties" />
+	
+	<spring:beans>
+		<spring:bean id="Paychecks_Data_Source" class="org.enhydra.jdbc.standard.StandardDataSource">
+			<spring:property name="url" value="${paychecks.db.url}"/>
+			<spring:property name="driverName" value="${paychecks.db.driver}"/>
+		</spring:bean>
+	</spring:beans>
+	
+	<file:connector name="File" moveToDirectory="${paycheck.file.archive}" streaming="true" validateConnections="true" doc:name="File" />
+	
+	<http:listener-config name="httpListenerConfig" host="${http.host}" port="${http.port}" doc:name="HTTP Listener Configuration"/>
+	
+	<http:request-config name="HTTP_Request_Paycheck_API_Configuration" protocol="HTTP" host="localhost" basePath="/api" port="8081" doc:name="HTTP Request Configuration">
+        <http:basic-authentication username="test" password="test1234" preemptive="true"/>
+	</http:request-config>
+	
+	<db:generic-config name="Paychecks_Database_Configuration" dataSource-ref="Paychecks_Data_Source" doc:name="Generic Database Configuration">
+    	<reconnect-forever />
+    </db:generic-config>
+    
+    <custom-transformer name="JavaToJsonSummaryTransformer" class="com.d2l2c.mule.paychecks.transformer.JavaToJsonSummaryTransformer" doc:name="Java"/>
+    <custom-transformer name="JavaToJsonDetailsTransformer" class="com.d2l2c.mule.paychecks.transformer.JavaToJsonDetailsTransformer" doc:name="Java"/>
+
+</mule>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
+	xmlns:ss="http://www.springframework.org/schema/security"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/schema/mule/spring-security/current/mule-spring-security.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+	<spring:beans>
+    	
+		<ss:authentication-manager alias="jdbc-authenticationManager">
+			<ss:authentication-provider>
+				<ss:password-encoder ref="encoder" />
+				<ss:jdbc-user-service 
+					data-source-ref="Paychecks_Data_Source" 
+					users-by-username-query="select user_name, password, enabled, user_id from users where user_name = ?"
+              		authorities-by-username-query="SELECT u.user_name, up.type FROM users as u JOIN users_user_profiles AS uup ON u.user_id = uup.user_id JOIN user_profiles AS up ON uup.profile_id = up.profile_id where u.user_name = ?" 
+              	/>
+			</ss:authentication-provider>
+    	</ss:authentication-manager>
+    	
+    	<spring:bean id="encoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+    	
+  	</spring:beans>
+  
+	<mule-ss:security-manager name="securityManager" doc:name="Spring Security Provider">
+		<mule-ss:delegate-security-provider name="jdbc-provider" delegate-ref="jdbc-authenticationManager" />
+	</mule-ss:security-manager>
+
+</mule>

@@ -1,0 +1,47 @@
+#%RAML 1.0
+---
+title: D2l2C Paychechs API
+baseUri: https://d2l2c.com/{version}
+version: v1
+
+mediaType: application/json
+
+types: 
+  paycheck:
+    type: !include types/paycheckType.raml
+
+documentation: 
+- title: D2l2C Paychechs API
+  content: D2l2C Paychechs API
+
+
+/paychecks:
+  /summary:
+    get:
+      description: return the paychecks
+      responses:
+        200:
+          body:
+            application/json:
+              type: paycheck[]
+  /{year}:
+    get:
+      description: return the paychecks
+      responses:
+        200:
+          body:
+            application/json:
+              type: paycheck[]
+    /{month}:
+      get:
+        description: return the paychecks
+        responses:
+          200:
+            body:
+              application/json:
+                type: paycheck[]
+  /import:              
+    post:
+      description: import Paychecks
+      responses:
+        200:

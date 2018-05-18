@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    
+    <flow name="mule-paychecks-import-paycheck-flow" processingStrategy="synchronous">
+        <object-to-byte-array-transformer doc:name="Object to Byte Array"/>
+        <custom-transformer class="com.d2l2c.mule.paychecks.transformer.ExtractFileContentTransformer" doc:name="Java"/>
+        
+        <logger message="#[payload]" level="INFO" />
+        
+        <custom-transformer class="com.d2l2c.mule.paychecks.transformer.ContentToPaycheckTransformer" doc:name="Java"/>
+        
+        <flow-ref name="mule-paychecks-process-flow" doc:name="mule-paychecks-process-flow"/>
+    </flow>
+    
+    <flow name="mule-paychecks-process-flow">
+        <flow-ref name="mule-paychecks-check-user-flow" doc:name="mule-paychecks-check-user-flow"/>
+        <flow-ref name="mule-paychecks-check-company-flow" doc:name="mule-paychecks-check-company-flow"/>
+        <flow-ref name="mule-paychecks-check-paycheck-config-flow" doc:name="mule-paychecks-check-paycheck-config-flow"/>
+        <flow-ref name="mule-paychecks-insert-paycheck-flow" doc:name="mule-paychecks-insert-paycheck-flow"/>
+    </flow>
+
+    <sub-flow name="mule-paychecks-check-user-flow">
+        <choice doc:name="Choice User Name">
+        	<when expression="#[flowVars.?userName != empty]">
+        		<flow-ref name="mule-paychecks-select-user-flow" doc:name="mule-paychecks-select-user-flow"/>
+        	</when>
+        	<otherwise>
+        		<scripting:component doc:name="Groovy">
+                    <scripting:script engine="Groovy"><![CDATA[throw new Exception("User Not Logged!!!");]]></scripting:script>
+                </scripting:component>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-check-company-flow">
+        <flow-ref name="mule-paychecks-select-company-flow" doc:name="mule-paychecks-select-company-flow"/>
+        <choice doc:name="Choice">
+        	<when expression="#[flowVars.?companyId == empty]">
+        		<flow-ref name="mule-paychecks-insert-company-flow" doc:name="mule-paychecks-insert-company-flow"/>
+        		<flow-ref name="mule-paychecks-select-company-flow" doc:name="mule-paychecks-select-company-flow"/>
+        		<flow-ref name="mule-paychecks-insert-user-company-flow" doc:name="mule-paychecks-insert-user-company-flow"/>
+        	</when>
+        	<otherwise>
+        		<flow-ref name="mule-paychecks-check-user-company-flow" doc:name="mule-paychecks-check-user-company-flow"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-check-user-company-flow">
+        <flow-ref name="mule-paychecks-select-user-company-flow" doc:name="mule-paychecks-select-user-company-flow"/>
+        <choice doc:name="Choice">
+        	<when expression="#[flowVars.?userIdCompanyId == empty]">
+        		<flow-ref name="mule-paychecks-insert-user-company-flow" doc:name="mule-paychecks-insert-user-company-flow"/>
+        	</when>
+        	<otherwise>
+		        <logger message="Continue..." level="DEBUG" doc:name="Logger"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-check-paycheck-config-flow">
+        <flow-ref name="mule-paychecks-select-paycheck_config-flow" doc:name="mule-paychecks-select-paycheck_config-flow"/>
+        <choice doc:name="Choice">
+        	<when expression="#[flowVars.?configId == empty]">
+        		<flow-ref name="mule-paychecks-insert-paycheck_config-flow" doc:name="mule-paychecks-insert-paycheck_config-flow"/>
+        		<flow-ref name="mule-paychecks-select-paycheck_config-flow" doc:name="mule-paychecks-select-paycheck_config-flow"/>
+        	</when>
+        	<otherwise>
+		        <logger message="Continue..." level="DEBUG" doc:name="Logger"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+    
+    <!-- ################################ SELECT QUERIES ################################ -->
+    
+    <sub-flow name="mule-paychecks-select-user-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	SELECT user_id 
+            	FROM users 
+            	WHERE user_name = :userName
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userName" value="#[flowVars.userName]" />
+        </db:select>
+        <choice doc:name="Choice Select User ID">
+        	<when expression="#[flowVars.selectResultSet.size() == 0]">
+        		<logger message="User Not Found With User Name: #[flowVars.userName]" level="WARN" doc:name="Logger"/>
+        		<scripting:component doc:name="Groovy">
+                    <scripting:script engine="Groovy"><![CDATA[throw new Exception("User Does Not Exist!!!");]]></scripting:script>
+                </scripting:component>
+        	</when>
+        	<otherwise>
+		        <set-variable variableName="userId" value="#[flowVars.selectResultSet.get(0).user_id]" doc:name="Variable" />
+		        <logger message="Found User Id: #[flowVars.userId]" level="INFO" doc:name="Logger"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-select-company-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	SELECT company_id
+            	FROM companies
+            	WHERE code = :companyCode
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="companyCode" value="#[payload.companyCode]" />
+        </db:select>
+        <choice doc:name="Choice Select Company Id">
+        	<when expression="#[flowVars.selectResultSet.size() == 0]">
+        		<logger message="No Company Found for Company Code: #[payload.companyCode] - Will Create New One" level="INFO" doc:name="Logger"/>
+        	</when>
+        	<otherwise>
+		        <set-variable variableName="companyId" value="#[flowVars.selectResultSet.get(0).company_id]" doc:name="Variable" />
+		        <logger message="Found Company Id: #[flowVars.companyId]" level="INFO" doc:name="Logger"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-select-user-company-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	SELECT company_id
+            	FROM users_companies
+            	WHERE user_id = :userId
+            	AND company_id = :companyId
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userId" value="#[flowVars.userId]" />
+            <db:in-param name="companyId" value="#[flowVars.companyId]" />
+        </db:select>
+        <choice doc:name="Choice Select User Company Id">
+        	<when expression="#[flowVars.selectResultSet.size() == 0]">
+        		<logger message="No Entry Found in users_companies Table for User Id: #[flowVars.userId] and Company Id: #[flowVars.companyId] - Will Create New One" level="INFO" doc:name="Logger"/>
+        	</when>
+        	<otherwise>
+		        <logger message="Found Entry in users_companies Table or User Id: #[flowVars.userId] and Company Id: #[flowVars.companyId]" level="INFO" doc:name="Logger"/>
+		        <set-variable variableName="userIdCompanyId" value="#[flowVars.selectResultSet.get(0).user_id]#[flowVars.selectResultSet.get(0).company_id]" doc:name="Variable" />
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-select-paycheck_config-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	SELECT config_id
+            	FROM paycheck_configs
+            	WHERE expected_number_of_hours = :expectedNumberOfHours
+            	AND net_percentage_of_gross = :netPercentageOfGross
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="expectedNumberOfHours" value="#[payload.expectedNumberOfHours]" />
+            <db:in-param name="netPercentageOfGross" value="#[payload.netPercentageOfGross]" />
+        </db:select>
+        <choice doc:name="Choice Select Config Id">
+        	<when expression="#[flowVars.selectResultSet.size() == 0]">
+        		<logger message="No Config Found for User Id: #[flowVars.userId] - Will Create New One" level="INFO" doc:name="Logger"/>
+        	</when>
+        	<otherwise>
+		        <set-variable variableName="configId" value="#[flowVars.selectResultSet.get(0).config_id]" doc:name="Variable" />
+		        <logger message="Found Config With Id: #[flowVars.configId]" level="INFO" doc:name="Logger"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+
+    <!-- ################################ INSERT QUERIES ################################ -->
+    
+    <sub-flow name="mule-paychecks-insert-company-flow">
+        <db:insert config-ref="Paychecks_Database_Configuration" target="#[flowVars.insertResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	INSERT INTO companies (
+	            	code,
+	            	name
+	            )
+	            VALUES (
+            		:code,
+            		:name
+            	)
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="code" value="#[payload.companyCode]" />
+            <db:in-param name="name" value="#[payload.companyName]" />
+        </db:insert>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-insert-user-company-flow">
+        <db:insert config-ref="Paychecks_Database_Configuration" target="#[flowVars.insertResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	INSERT INTO users_companies (
+	            	user_id,
+	            	company_id
+	            )
+	            VALUES (
+            		:userId,
+            		:companyId
+            	)
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userId" value="#[flowVars.userId]" />
+            <db:in-param name="companyId" value="#[flowVars.companyId]" />
+        </db:insert>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-insert-paycheck_config-flow">
+        <db:insert config-ref="Paychecks_Database_Configuration" target="#[flowVars.insertResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	INSERT INTO paycheck_configs (
+	            	expected_number_of_hours,
+	            	net_percentage_of_gross
+	            )
+	            VALUES (
+            		:expectedNumberOfHours,
+            		:netPercentageOfGross
+            	)
+            	]]>
+            </db:parameterized-query>
+			<db:in-param name="expectedNumberOfHours" value="#[payload.expectedNumberOfHours]" />
+			<db:in-param name="netPercentageOfGross" value="#[payload.netPercentageOfGross]" />
+        </db:insert>
+    </sub-flow>
+
+    <sub-flow name="mule-paychecks-insert-paycheck-flow">
+        <logger message="Inserting into Database Paycheck..." level="INFO" doc:name="Logger"/>
+        <db:insert config-ref="Paychecks_Database_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	INSERT INTO paychecks (
+	            	user_id,
+	            	company_id,
+	            	config_id,
+	            	year,
+	            	month,
+	            	bi_week,
+	            	start_date,
+	            	end_date,
+	            	number_of_hours,
+	            	hourly_rate,
+	            	gross_amount,
+	            	net_pay,
+	            	reimbursement
+	            )
+	            VALUES (
+            		:userId,
+            		:companyId,
+            		:configId,
+            		:year,
+            		:month,
+            		:bi_week,
+            		:startDate,
+            		:endDate,
+					:numberOfHours,
+					:hourlyRate,
+					:grossAmount,
+					:netPay,
+					:reimbursement
+				)
+				]]>
+			</db:parameterized-query>
+			<db:in-param name="userId" value="#[flowVars.userId]" />
+			<db:in-param name="companyId" value="#[flowVars.companyId]" />
+			<db:in-param name="configId" value="#[flowVars.configId]" />
+			<db:in-param name="year" value="#[payload.year]" />
+			<db:in-param name="month" value="#[payload.month]" />
+			<db:in-param name="bi_week" value="#[payload.biWeek]" />
+			<db:in-param name="startDate" value="#[payload.startDate]" type="DATE" />
+			<db:in-param name="endDate" value="#[payload.endDate]" type="DATE" />
+			<db:in-param name="numberOfHours" value="#[payload.numberOfHours]" />
+			<db:in-param name="hourlyRate" value="#[payload.hourlyRate]" />
+			<db:in-param name="grossAmount" value="#[payload.grossAmount]" />
+			<db:in-param name="netPay" value="#[payload.netPay]" />
+			<db:in-param name="reimbursement" value="#[payload.reimbursement]" />
+        </db:insert>
+		<logger message="Done Inserting Paycheck into Database..." level="INFO" doc:name="Logger"/>
+    </sub-flow>
+
+    <!-- ################################ UPDATE QUERIES ################################ -->
+
+    <sub-flow name="mule-paychecks-disable-old-paycheck_configs-flow">
+        <db:update config-ref="Paychecks_Database_Configuration" target="#[flowVars.rateInsertResultSet]" doc:name="Database">
+            <db:parameterized-query><![CDATA[
+            	UPDATE paycheck_configs
+            	SET end_date = :endDate
+            	WHERE end_date IS NULL 
+            	AND user_id = :userId
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userId" value="#[flowVars.userId]" />
+            <db:in-param name="endDate" value="#[payload.startDate]" />
+        </db:update>
+    </sub-flow>
+    
+</mule>

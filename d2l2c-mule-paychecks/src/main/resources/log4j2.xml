@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  	<Properties>
+    	<Property name="projectname">d2l2c-mule-paychecks</Property>
+  	</Properties>
+    <Appenders>
+        <RollingFile name="file" fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}${projectname}${sys:file.separator}${projectname}.log" 
+                 filePattern="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}${projectname}${sys:file.separator}${projectname}-%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+	        <Policies>
+	          <TimeBasedTriggeringPolicy />
+	          <SizeBasedTriggeringPolicy size="20 MB"/>
+	        </Policies>
+        </RollingFile>
+        <RollingFile name="error" fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}${projectname}${sys:file.separator}${projectname}-error.log" 
+                 filePattern="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}${projectname}${sys:file.separator}${projectname}-error-%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+	        <Policies>
+	          <TimeBasedTriggeringPolicy />
+	          <SizeBasedTriggeringPolicy size="20 MB"/>
+	        </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <!-- CXF is used heavily by Mule for web services -->
+        <AsyncLogger name="org.apache.cxf" level="WARN"/>
+
+        <!-- Apache Commons tend to make a lot of noise which can clutter the log-->
+        <AsyncLogger name="org.apache" level="WARN"/>
+
+        <!-- Reduce startup noise -->
+        <AsyncLogger name="org.springframework.beans.factory" level="WARN"/>
+
+        <!-- Mule classes -->
+        <AsyncLogger name="com.mulesoft" level="WARN"/>
+        <AsyncLogger name="org.mule" level="WARN"/>
+        <AsyncLogger name="org.mule.api.processor.LoggerMessageProcessor" level="DEBUG"/>
+        <AsyncLogger name="org.mule.transport.file.FileConnector" level="INFO"/>
+        <!-- Reduce DM verbosity -->
+        <AsyncLogger name="org.jetel" level="WARN"/>
+        <AsyncLogger name="Tracking" level="WARN"/>
+        
+        <AsyncRoot level="INFO">
+            <AppenderRef ref="file" level="INFO" />
+            <AppenderRef ref="error" level="ERROR" />
+        </AsyncRoot>
+    </Loggers>
+</Configuration>
