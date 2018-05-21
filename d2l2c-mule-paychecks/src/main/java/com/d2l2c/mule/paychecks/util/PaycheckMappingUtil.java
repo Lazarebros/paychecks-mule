@@ -5,13 +5,13 @@ package com.d2l2c.mule.paychecks.util;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.dozer.DozerBeanMapper;
-import org.dozer.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,12 @@ public class PaycheckMappingUtil {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PaycheckMappingUtil.class);
 
-	private static final Mapper mapper = new DozerBeanMapper();
+	private static DozerBeanMapper mapper;
+	
+	static {
+		mapper = new DozerBeanMapper();
+		mapper.setMappingFiles(Arrays.asList("dozer_mapping.xml"));
+	}
 	
 	public static Collection<PaycheckSummary> getSummarizedPaychecks(List<Map<String, Object>> mapObject) {
 		List<PaycheckDB> paycheckDBList = mapPaycheckDB(mapObject);
@@ -74,11 +79,17 @@ public class PaycheckMappingUtil {
 			totalGrossAmount = totalGrossAmount.add(paycheckDB.getGrossAmount());
 			totalNetPay = totalNetPay.add(paycheckDB.getNetPay());
 			totalReimbursement = totalReimbursement.add(paycheckDB.getReimbursement());
-			totalExpectedGrossAmount = totalExpectedGrossAmount.add(paycheckDB.getHourlyRate().multiply(new BigDecimal(paycheckDB.getExpectedNumberOfHours())));
+			
+			BigDecimal expectedGrossAmount = paycheckDB.getHourlyRate().multiply(new BigDecimal(paycheckDB.getExpectedNumberOfHours()));
+			totalExpectedGrossAmount = totalExpectedGrossAmount.add(expectedGrossAmount);
+			
+			BigDecimal expectedNetPay = expectedGrossAmount.multiply(paycheckDB.getNetPercentageOfGross());
 			totalExpectedNetPay = totalExpectedNetPay.add(totalExpectedGrossAmount.multiply(paycheckDB.getNetPercentageOfGross()));
 			
 			if(withDetails) {
 				PaycheckDetails paycheckDetails= mapper.map(paycheckDB, PaycheckDetails.class);
+				paycheckDetails.setExpectedGrossAmount(expectedGrossAmount);
+				paycheckDetails.setExpectedNetPay(expectedNetPay);
 				paycheckSummary.add(paycheckDetails);
 			}
 		}

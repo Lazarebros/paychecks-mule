@@ -4,7 +4,6 @@
 package com.d2l2c.mule.paychecks.bean;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * @author dlazare
@@ -14,8 +13,8 @@ public class PaycheckDetails {
 
 	private Long id;
 	private String companyCode;
-	private Date startDate;
-	private Date endDate;
+	private String startDate;
+	private String endDate;
 	private Long numberOfHours;
 	private BigDecimal hourlyRate;
 	private BigDecimal expectedGrossAmount;
@@ -57,7 +56,7 @@ public class PaycheckDetails {
 	/**
 	 * @return the startDate
 	 */
-	public Date getStartDate() {
+	public String getStartDate() {
 		return startDate;
 	}
 
@@ -65,14 +64,14 @@ public class PaycheckDetails {
 	 * @param startDate
 	 *            the startDate to set
 	 */
-	public void setStartDate(Date startDate) {
+	public void setStartDate(String startDate) {
 		this.startDate = startDate;
 	}
 
 	/**
 	 * @return the endDate
 	 */
-	public Date getEndDate() {
+	public String getEndDate() {
 		return endDate;
 	}
 
@@ -80,7 +79,7 @@ public class PaycheckDetails {
 	 * @param endDate
 	 *            the endDate to set
 	 */
-	public void setEndDate(Date endDate) {
+	public void setEndDate(String endDate) {
 		this.endDate = endDate;
 	}
 

@@ -66,11 +66,13 @@
 
 	<!-- Mule Dependencies -->
 	<dependencies>
+		
 		<dependency>
 			<groupId>com.d2l2c</groupId>
 			<artifactId>paycheck-scanner-util</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>com.mulesoft.muleesb</groupId>
 			<artifactId>mule-core-ee</artifactId>
@@ -83,6 +85,7 @@
 			<version>${mule.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- Mule Transports -->
 		<dependency>
 			<groupId>org.mule.transports</groupId>
@@ -114,6 +117,7 @@
 			<version>${mule.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		
 		<!-- Mule Modules -->
 		<dependency>
 			<groupId>org.mule.modules</groupId>
