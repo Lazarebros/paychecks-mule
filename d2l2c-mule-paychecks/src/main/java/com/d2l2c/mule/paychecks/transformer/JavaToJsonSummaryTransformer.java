@@ -30,7 +30,7 @@ public class JavaToJsonSummaryTransformer extends AbstractMessageTransformer {
 
 			muleMessage.setPayload(paychecks);
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e);
 		}
 		return muleMessage;
 	}

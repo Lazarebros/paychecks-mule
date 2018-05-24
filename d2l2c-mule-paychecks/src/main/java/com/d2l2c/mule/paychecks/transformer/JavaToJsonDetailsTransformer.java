@@ -3,6 +3,7 @@
  */
 package com.d2l2c.mule.paychecks.transformer;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -25,9 +26,9 @@ public class JavaToJsonDetailsTransformer extends AbstractMessageTransformer {
 		try {
 			List<Map<String, Object>> payload = (List<Map<String, Object>>) muleMessage.getPayload();
 
-			PaycheckSummary paycheckSummary = PaycheckMappingUtil.getDetailledPaychecks(payload);
+			Collection<PaycheckSummary> paycheckSummaryList = PaycheckMappingUtil.getDetailledPaychecks(payload);
 
-			muleMessage.setPayload(paycheckSummary);
+			muleMessage.setPayload(paycheckSummaryList);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}

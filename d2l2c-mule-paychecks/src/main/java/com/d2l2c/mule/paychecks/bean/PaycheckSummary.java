@@ -4,8 +4,7 @@
 package com.d2l2c.mule.paychecks.bean;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @author dlazare
@@ -24,7 +23,7 @@ public class PaycheckSummary {
 	private BigDecimal netPayReal;
 	private BigDecimal netPayRemain;
 
-	private List<PaycheckDetails> paycheckDetailsList = new ArrayList<PaycheckDetails>();
+	private Collection<PaycheckDetails> paycheckDetailsList = null;
 
 	/**
 	 * @return the year
@@ -179,7 +178,7 @@ public class PaycheckSummary {
 	/**
 	 * @return the paycheckDetailsList
 	 */
-	public List<PaycheckDetails> getPaycheckDetailsList() {
+	public Collection<PaycheckDetails> getPaycheckDetailsList() {
 		return paycheckDetailsList;
 	}
 
@@ -187,7 +186,7 @@ public class PaycheckSummary {
 	 * @param paycheckDetailsList
 	 *            the paycheckDetailsList to set
 	 */
-	public void setPaycheckDetailsList(List<PaycheckDetails> paycheckDetailsList) {
+	public void setPaycheckDetailsList(Collection<PaycheckDetails> paycheckDetailsList) {
 		this.paycheckDetailsList = paycheckDetailsList;
 	}
 	
