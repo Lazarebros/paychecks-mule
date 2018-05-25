@@ -4,6 +4,7 @@
 package com.d2l2c.mule.paychecks.util;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,9 +17,10 @@ import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.d2l2c.mule.paychecks.bean.PaycheckDB;
-import com.d2l2c.mule.paychecks.bean.PaycheckDetails;
-import com.d2l2c.mule.paychecks.bean.PaycheckSummary;
+import com.d2l2c.paycheck.util.bean.PaycheckDB;
+import com.d2l2c.paycheck.util.bean.PaycheckDetail;
+import com.d2l2c.paycheck.util.bean.PaycheckSummary;
+import com.d2l2c.paycheck.util.bean.PaycheckUnit;
 
 /**
  * @author dlazare
@@ -40,7 +42,7 @@ public class PaycheckMappingUtil {
 
 		Map<Integer, PaycheckSummary> mapOfPaycheckSummaryMap = paycheckDBList.stream().collect(
 				Collectors.groupingBy(PaycheckDB::getYear, Collectors.collectingAndThen(Collectors.toList(), l -> {
-					return getPaychecks(l, false);
+					return getPaychecks(l, true);
 				})));
 
 		return mapOfPaycheckSummaryMap.values();
@@ -78,10 +80,15 @@ public class PaycheckMappingUtil {
 		BigDecimal totalReimbursement = new BigDecimal("0.00");
 		BigDecimal totalExpectedGrossAmount = new BigDecimal("0.00");
 		BigDecimal totalExpectedNetPay = new BigDecimal("0.00");
+		
+		int maxMonth = 1;
 
-		Map<Integer, PaycheckDetails> paycheckDetailsMap = new HashMap<Integer, PaycheckDetails>();
+		Map<Integer, PaycheckDetail> paycheckDetailsMap = new HashMap<Integer, PaycheckDetail>();
 		
 		for(PaycheckDB paycheckDB : paycheckDBList) {
+			
+			maxMonth = maxMonth < paycheckDB.getMonth() ? paycheckDB.getMonth() : maxMonth;
+			
 			totalGrossAmount = totalGrossAmount.add(paycheckDB.getGrossAmount());
 			totalNetPay = totalNetPay.add(paycheckDB.getNetPay());
 			totalReimbursement = totalReimbursement.add(paycheckDB.getReimbursement());
@@ -94,35 +101,35 @@ public class PaycheckMappingUtil {
 			totalExpectedNetPay = totalExpectedGrossAmount.multiply(paycheckDB.getNetPercentageOfGross());
 
 			if (withDetails) {
-				PaycheckDetails paycheckDetails = null;
+				PaycheckDetail paycheckDetail = null;
 				
 				if (paycheckDetailsMap.containsKey(paycheckDB.getMonth())) {
-					paycheckDetails = paycheckDetailsMap.get(paycheckDB.getMonth());
+					paycheckDetail = paycheckDetailsMap.get(paycheckDB.getMonth());
 					
-					PaycheckDetails paycheckDetailsCopy = mapper.map(paycheckDB, PaycheckDetails.class);
+					PaycheckDetail paycheckDetailsCopy = mapper.map(paycheckDB, PaycheckDetail.class);
 					
-					BigDecimal grossAmount = paycheckDetails.getGrossAmount().add(paycheckDetailsCopy.getGrossAmount());
-					BigDecimal netPay = paycheckDetails.getNetPay().add(paycheckDetailsCopy.getNetPay());
-					BigDecimal reimbursement = paycheckDetails.getReimbursement().add(paycheckDetailsCopy.getReimbursement());
+					BigDecimal grossAmount = paycheckDetail.getGrossAmount().add(paycheckDetailsCopy.getGrossAmount());
+					BigDecimal netPay = paycheckDetail.getNetPay().add(paycheckDetailsCopy.getNetPay());
+					BigDecimal reimbursement = paycheckDetail.getReimbursement().add(paycheckDetailsCopy.getReimbursement());
 					
-					Long numberOfHours = paycheckDetails.getNumberOfHours() + paycheckDetailsCopy.getNumberOfHours();
+					Long numberOfHours = paycheckDetail.getNumberOfHours() + paycheckDetailsCopy.getNumberOfHours();
 
-					paycheckDetails.setGrossAmount(grossAmount);
-					paycheckDetails.setNetPay(netPay);
-					paycheckDetails.setReimbursement(reimbursement);
-					paycheckDetails.setNumberOfHours(numberOfHours);
-					paycheckDetails.setEndDate(paycheckDetailsCopy.getEndDate());
+					paycheckDetail.setGrossAmount(grossAmount);
+					paycheckDetail.setNetPay(netPay);
+					paycheckDetail.setReimbursement(reimbursement);
+					paycheckDetail.setNumberOfHours(numberOfHours);
 					
-					paycheckDetails.setExpectedGrossAmount(expectedGrossAmount.multiply(new BigDecimal("2.00")));
-					paycheckDetails.setExpectedNetPay(expectedNetPay.multiply(new BigDecimal("2.00")));
+					paycheckDetail.setExpectedGrossAmount(expectedGrossAmount.multiply(new BigDecimal("2.00")));
+					paycheckDetail.setExpectedNetPay(expectedNetPay.multiply(new BigDecimal("2.00")));
 					
 				} else {
-					paycheckDetails = mapper.map(paycheckDB, PaycheckDetails.class);
-					paycheckDetails.setExpectedGrossAmount(expectedGrossAmount);
-					paycheckDetails.setExpectedNetPay(expectedNetPay);
-					paycheckDetailsMap.put(paycheckDetails.getMonth(), paycheckDetails);
+					paycheckDetail = mapper.map(paycheckDB, PaycheckDetail.class);
+					paycheckDetail.setExpectedGrossAmount(expectedGrossAmount);
+					paycheckDetail.setExpectedNetPay(expectedNetPay);
+					paycheckDetailsMap.put(paycheckDetail.getMonth(), paycheckDetail);
 				}
-				
+				PaycheckUnit paycheckUnit = mapper.map(paycheckDB, PaycheckUnit.class);
+				paycheckDetail.add(paycheckUnit);
 			}
 		}
 
@@ -135,7 +142,10 @@ public class PaycheckMappingUtil {
 		paycheckSummary.setNetPayReal(realNetPay);
 		paycheckSummary.setNetPayRemain(realNetPay.subtract(totalExpectedNetPay));
 		
-		paycheckSummary.setPaycheckDetailsList(paycheckDetailsMap.values());
+		paycheckSummary.setYearProgress((maxMonth * 100) / 12);
+		paycheckSummary.setNetPayRealMean(realNetPay.divide(new BigDecimal(maxMonth), RoundingMode.HALF_UP));
+		
+		paycheckSummary.setPaycheckDetails(paycheckDetailsMap.values());
 
 		return paycheckSummary;
 	}

@@ -11,8 +11,8 @@ import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageTransformer;
 
-import com.d2l2c.mule.paychecks.bean.PaycheckSummary;
 import com.d2l2c.mule.paychecks.util.PaycheckMappingUtil;
+import com.d2l2c.paycheck.util.bean.PaycheckSummary;
 
 /**
  * @author dayanlazare
