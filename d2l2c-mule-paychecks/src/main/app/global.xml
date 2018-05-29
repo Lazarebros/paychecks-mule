@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:core="http://www.mulesoft.org/schema/mule/core" 
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:core="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns:context="http://www.springframework.org/schema/context" 
 	xmlns:file="http://www.mulesoft.org/schema/mule/file"
@@ -10,6 +11,7 @@
 	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
 		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 		http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
@@ -17,7 +19,7 @@
 		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd">
 
-	<context:property-placeholder location="file:${esb.conf.path}/${esb.env}-mule-paychecks.properties" />
+	<context:property-placeholder location="file:${MULE_CONF_DIR}/properties/${MULE_ENV}-mule-paychecks.properties" />
 	
 	<spring:beans>
 		<spring:bean id="Paychecks_Data_Source" class="org.enhydra.jdbc.standard.StandardDataSource">
@@ -28,6 +30,13 @@
 	
 	<file:connector name="File" moveToDirectory="${paycheck.file.archive}" streaming="true" validateConnections="true" doc:name="File" />
 	
+	<!-- HTTP(s) Configuration -->
+	<tls:context name="sharedTlsContext" doc:name="TLS Context">
+      	<tls:trust-store />
+        <tls:key-store path="${MULE_CONF_DIR}/ssl/${keystore.file.name}" password="${keystore.password}" keyPassword="${keystore.keyPassword}" />
+    </tls:context>
+
+  	<http:listener-config name="httpsListenerConfig" protocol="HTTPS" host="${http.host}" port="${https.port}" tlsContext-ref="sharedTlsContext" doc:name="HTTP Listener Configuration"/>
 	<http:listener-config name="httpListenerConfig" host="${http.host}" port="${http.port}" doc:name="HTTP Listener Configuration"/>
 	
 	<http:request-config name="HTTP_Request_Paycheck_API_Configuration" protocol="HTTP" host="localhost" basePath="/api" port="8081" doc:name="HTTP Request Configuration">
