@@ -240,6 +240,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 	            	year,
 	            	month,
 	            	bi_week,
+	            	pay_date,
 	            	start_date,
 	            	end_date,
 	            	number_of_hours,
@@ -255,6 +256,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             		:year,
             		:month,
             		:bi_week,
+            		:payDate,
             		:startDate,
             		:endDate,
 					:numberOfHours,
@@ -271,6 +273,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 			<db:in-param name="year" value="#[payload.year]" />
 			<db:in-param name="month" value="#[payload.month]" />
 			<db:in-param name="bi_week" value="#[payload.biWeek]" />
+			<db:in-param name="payDate" value="#[payload.payDate]" type="DATE" />
 			<db:in-param name="startDate" value="#[payload.startDate]" type="DATE" />
 			<db:in-param name="endDate" value="#[payload.endDate]" type="DATE" />
 			<db:in-param name="numberOfHours" value="#[payload.numberOfHours]" />

@@ -21,17 +21,26 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
         <apikit:flow-mapping resource="/paychecks/import" action="post" flow-ref="mule-paychecks-import-paycheck-flow"/>
     </apikit:config>
     
-    <flow name="api-main">
+    <flow name="api-http-main">
         <http:listener config-ref="httpListenerConfig" path="/api/*" doc:name="HTTP"/>
-        
+        <flow-ref name="api-requets-main" doc:name="api-requets-main" />
+        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    
+    <flow name="api-https-main">
+        <http:listener config-ref="httpsListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <flow-ref name="api-requets-main" doc:name="api-requets-main" />
+        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    
+    <sub-flow name="api-requets-main">
         <http:basic-security-filter realm="mule-realm" securityProviders="jdbc-provider"/>
         <mule-ss:authorization-filter requiredAuthorities="ADMIN, USER" />
         
         <component class="com.d2l2c.mule.paychecks.component.GetSecurityPrincipalComponent" />
         
         <apikit:router config-ref="Router" doc:name="APIkit Router" />
-        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
-    </flow>
+    </sub-flow>
     
     <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">

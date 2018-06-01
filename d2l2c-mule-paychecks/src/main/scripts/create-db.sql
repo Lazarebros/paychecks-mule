@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS paychecks (
   year int(20) NOT NULL,
   month int(20) NOT NULL,
   bi_week int(20) NOT NULL,
+  pay_date datetime NOT NULL,
   start_date datetime NOT NULL,
   end_date datetime NOT NULL,
   number_of_hours bigint(20) DEFAULT 0,
@@ -97,7 +98,7 @@ CREATE TABLE IF NOT EXISTS paychecks (
   CONSTRAINT fk_paycheck_user_id FOREIGN KEY (user_id) references users(user_id),
   CONSTRAINT fk_paycheck_company_id FOREIGN KEY (company_id) references companies(company_id),
   CONSTRAINT fk_paycheck_config_id FOREIGN KEY (config_id) references paycheck_configs(config_id),
-  CONSTRAINT UC_Paychecks UNIQUE (user_id,start_date,end_date)
+  CONSTRAINT UC_Paychecks UNIQUE (user_id,company_id,pay_date)
 );
 
 /* JOIN TABLE for USERS AND COMPANIES */
