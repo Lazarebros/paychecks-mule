@@ -76,7 +76,7 @@ public class PaycheckMappingUtil {
 
 		BigDecimal totalGrossAmount = new BigDecimal("0.00");
 		BigDecimal totalNetPay = new BigDecimal("0.00");
-		BigDecimal realNetPay = new BigDecimal("0.00");
+		BigDecimal totalRealNetPay = new BigDecimal("0.00");
 		BigDecimal totalReimbursement = new BigDecimal("0.00");
 		BigDecimal totalExpectedGrossAmount = new BigDecimal("0.00");
 		BigDecimal totalExpectedNetPay = new BigDecimal("0.00");
@@ -92,7 +92,7 @@ public class PaycheckMappingUtil {
 			totalGrossAmount = totalGrossAmount.add(paycheckDB.getGrossAmount());
 			totalNetPay = totalNetPay.add(paycheckDB.getNetPay());
 			totalReimbursement = totalReimbursement.add(paycheckDB.getReimbursement());
-			realNetPay = totalNetPay.subtract(totalReimbursement);
+			totalRealNetPay = totalNetPay.subtract(totalReimbursement);
 
 			BigDecimal expectedGrossAmount = paycheckDB.getHourlyRate().multiply(new BigDecimal(paycheckDB.getExpectedNumberOfHours()));
 			totalExpectedGrossAmount = totalExpectedGrossAmount.add(expectedGrossAmount);
@@ -128,7 +128,10 @@ public class PaycheckMappingUtil {
 					paycheckDetail.setExpectedNetPay(expectedNetPay);
 					paycheckDetailsMap.put(paycheckDetail.getMonth(), paycheckDetail);
 				}
+				paycheckDetail.setNetPayReal(paycheckDetail.getNetPay().subtract(paycheckDetail.getReimbursement()));
+				
 				PaycheckUnit paycheckUnit = mapper.map(paycheckDB, PaycheckUnit.class);
+				paycheckUnit.setNetPayReal(paycheckDB.getNetPay().subtract(paycheckDB.getReimbursement()));
 				paycheckDetail.add(paycheckUnit);
 			}
 		}
@@ -139,11 +142,11 @@ public class PaycheckMappingUtil {
 		paycheckSummary.setReimbursement(totalReimbursement);
 		paycheckSummary.setExpectedNetPay(totalExpectedNetPay);
 		paycheckSummary.setNetPay(totalNetPay);
-		paycheckSummary.setNetPayReal(realNetPay);
-		paycheckSummary.setNetPayRemain(realNetPay.subtract(totalExpectedNetPay));
+		paycheckSummary.setNetPayReal(totalRealNetPay);
+		paycheckSummary.setNetPayRemain(totalRealNetPay.subtract(totalExpectedNetPay));
 		
 		paycheckSummary.setYearProgress((maxMonth * 100) / 12);
-		paycheckSummary.setNetPayRealMean(realNetPay.divide(new BigDecimal(maxMonth), RoundingMode.HALF_UP));
+		paycheckSummary.setNetPayRealMean(totalRealNetPay.divide(new BigDecimal(maxMonth), RoundingMode.HALF_UP));
 		
 		paycheckSummary.setPaycheckDetails(paycheckDetailsMap.values());
 

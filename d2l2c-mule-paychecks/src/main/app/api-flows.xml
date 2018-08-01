@@ -22,6 +22,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	pay.paycheck_id AS id, 
             	pay.year AS year, 
             	pay.month AS month, 
+            	pay.bi_week AS biWeek,
             	pay.pay_date AS payDate, 
             	pay.start_date AS startDate, 
             	pay.end_date AS endDate, 
@@ -70,6 +71,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	pay.paycheck_id AS id, 
             	pay.year AS year, 
             	pay.month AS month, 
+            	pay.bi_week AS biWeek,
             	pay.pay_date AS payDate, 
             	pay.start_date AS startDate, 
             	pay.end_date AS endDate, 
@@ -95,7 +97,6 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         
         <transformer ref="JavaToJsonDetailsTransformer" />
         
-<!--         <flow-ref name="paychechs-transform-flow" doc:name="paychechs-transform-flow"/> -->
     </flow>
     
     <flow name="paychechs-year-month-flow">
@@ -107,6 +108,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	pay.paycheck_id, 
             	pay.year, 
             	pay.month, 
+            	pay.bi_week AS biWeek,
             	pay.pay_date AS payDate, 
             	pay.start_date, 
             	pay.end_date, 
@@ -132,7 +134,8 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             <db:in-param name="month" value="#[flowVars.month]" />
         </db:select>
         
-        <flow-ref name="paychechs-transform-flow" doc:name="paychechs-transform-flow"/>
+        <transformer ref="JavaToJsonDetailsTransformer" />
+        
     </flow>
     
     <sub-flow name="paychechs-transform-flow">
