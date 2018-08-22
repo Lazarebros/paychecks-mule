@@ -6,9 +6,9 @@ SET SCHEMA salary;
 --DELETE FROM persistent_logins;
 
 /* Populate users Table */
-INSERT INTO users (user_id, user_name, password, first_name, last_name, enabled) VALUES
-(1, 'test', 'test', 'test', 'test', 1),
-(2, 'test1', 'test1', 'test1', 'test1', 1);
+INSERT INTO users (user_id, user_uid, user_name, password, first_name, last_name, enabled, date_created, date_updated) VALUES
+(1, 1, 'test', 'test', 'test', 'test', 1, now(), now()),
+(2, 2, 'test1', 'test1', 'test1', 'test1', 1, now(), now());
 
 update users set password = '$2a$10$NS7rmMeQ9OFQIzDy0daPVu8vjRryl85Nvsy.cAURz6/DNiOqgpdNi' where user_id = 1;
 update users set password = '$2a$10$NS7rmMeQ9OFQIzDy0daPVu8vjRryl85Nvsy.cAURz6/DNiOqgpdNi' where user_id = 2;

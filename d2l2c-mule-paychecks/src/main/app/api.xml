@@ -14,7 +14,9 @@ http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/a
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
     
-    <apikit:config name="Router" raml="api.raml" consoleEnabled="false" consolePath="console" keepRamlBaseUri="false" doc:name="Router">
+    <apikit:config name="API_Router_Config" raml="api.raml" consoleEnabled="false" consolePath="console" keepRamlBaseUri="false" doc:name="Router">
+        <apikit:flow-mapping resource="/users/login" action="get" flow-ref="user-login-flow"/>
+        <apikit:flow-mapping resource="/users/register" action="get" flow-ref="user-registration-flow"/>
         <apikit:flow-mapping resource="/paychecks/summary" action="get" flow-ref="paychechs-flow"/>
         <apikit:flow-mapping resource="/paychecks/{year}" action="get" flow-ref="paychechs-year-flow"/>
         <apikit:flow-mapping resource="/paychecks/{year}/{month}" action="get" flow-ref="paychechs-year-month-flow"/>
@@ -23,23 +25,36 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     
     <flow name="api-http-main">
         <http:listener config-ref="httpListenerConfig" path="/api/*" doc:name="HTTP"/>
-        <flow-ref name="api-requets-main" doc:name="api-requets-main" />
+        <choice>
+        	<when expression="#[message.inboundProperties.'http.request.path'.contains('users')]">
+        		<logger message="Not Secure!!" level="INFO" />
+        	</when>
+        	<otherwise>
+        		<flow-ref name="authenticate-request-flow" doc:name="api-requets-main" />
+        	</otherwise>
+        </choice>
+        <apikit:router config-ref="API_Router_Config" doc:name="APIkit Router" />
         <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
     </flow>
     
     <flow name="api-https-main">
         <http:listener config-ref="httpsListenerConfig" path="/api/*" doc:name="HTTP"/>
-        <flow-ref name="api-requets-main" doc:name="api-requets-main" />
+        <choice>
+        	<when expression="#[message.inboundProperties.'http.request.path'.contains('users')]">
+        		<logger message="Not Secure!!" level="INFO" />
+        	</when>
+        	<otherwise>
+        		<flow-ref name="authenticate-request-flow" doc:name="api-requets-main" />
+        	</otherwise>
+        </choice>
+        <apikit:router config-ref="API_Router_Config" doc:name="APIkit Router" />
         <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
     </flow>
     
-    <sub-flow name="api-requets-main">
+    <sub-flow name="authenticate-request-flow">
         <http:basic-security-filter realm="mule-realm" securityProviders="jdbc-provider"/>
         <mule-ss:authorization-filter requiredAuthorities="ADMIN, USER" />
-        
         <component class="com.d2l2c.mule.paychecks.component.GetSecurityPrincipalComponent" />
-        
-        <apikit:router config-ref="Router" doc:name="APIkit Router" />
     </sub-flow>
     
     <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">

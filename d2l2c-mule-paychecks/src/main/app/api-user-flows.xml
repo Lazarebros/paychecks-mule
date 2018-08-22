@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+	<catch-exception-strategy name="paychecks-user-exception-handler">
+        <set-variable variableName="mainException" value="#[exception]" doc:name="Variable"/>
+        <logger level="ERROR" message="#[flowVars['mainException']]" doc:name="Logger"/>
+		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Server Error!&quot;}" doc:name="Set Payload"/>
+	</catch-exception-strategy>
+
+    <flow name="user-login-flow">
+        <set-variable variableName="userName" value="#[message.inboundProperties.'http.query.params'.user_name]" doc:name="Variable" />
+        <set-variable variableName="password" value="#[message.inboundProperties.'http.query.params'.user_password]" doc:name="Variable" />
+        <flow-ref name="select-user-by-username-flow" doc:name="select-user-by-username-flow" />
+        <choice>
+        	<when expression="#[flowVars.selectResultSet.size() &gt; 0 and checkPassword(flowVars.password, flowVars.selectResultSet.get(0).password)]">
+        		<transformer ref="contentToUserTransformer" />
+        	</when>
+        	<otherwise>
+        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Login credentials are incorrect. Please try again!&quot;}" doc:name="Set Payload"/>
+        	</otherwise>
+        </choice>
+        <exception-strategy ref="paychecks-user-exception-handler" doc:name="paychecks-user-exception-handler" />
+    </flow>
+
+    <flow name="user-registration-flow">
+    	<set-variable variableName="firstName" value="#[message.inboundProperties.'http.query.params'.first_name]" doc:name="Variable" />
+    	<set-variable variableName="lastName" value="#[message.inboundProperties.'http.query.params'.last_name]" doc:name="Variable" />
+        <set-variable variableName="userName" value="#[message.inboundProperties.'http.query.params'.user_name]" doc:name="Variable" />
+        <set-variable variableName="password" value="#[message.inboundProperties.'http.query.params'.user_password]" doc:name="Variable" />
+    	<set-variable variableName="registrationCode" value="#[message.inboundProperties.'http.query.params'.registration_code]" doc:name="Variable" />
+        <flow-ref name="select-user-by-username-flow" doc:name="select-user-by-username-flow" />
+        <choice>
+        	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
+        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;User name already exist. Please try with another user name!&quot;}" doc:name="Set Payload"/>
+        	</when>
+        	<otherwise>
+		        <flow-ref name="check-registration-code-flow" doc:name="check-registration-code-flow" />
+		        <choice>
+		        	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
+		        		<flow-ref name="insert-user-flow" doc:name="insert-user-flow" />
+		        		<set-payload value="{&quot;SUCCESS&quot;: true}" doc:name="Set Payload"/>
+		        	</when>
+		        	<otherwise>
+		        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Wrong registration code!&quot;}" doc:name="Set Payload"/>
+		        	</otherwise>
+		        </choice>
+        	</otherwise>
+        </choice>
+        <exception-strategy ref="paychecks-user-exception-handler" doc:name="paychecks-user-exception-handler" />
+    </flow>
+    
+    <sub-flow name="select-user-by-username-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+        	<db:parameterized-query><![CDATA[
+            	SELECT 
+            	user.user_id AS id, 
+            	user.user_uid AS user_uid, 
+            	user.user_name AS user_name, 
+            	user.password AS password, 
+            	user.first_name AS first_name, 
+            	user.last_name AS last_name, 
+            	user.date_created AS date_created, 
+            	user.date_updated AS date_updated, 
+            	user.enabled AS enabled
+            	FROM users AS user
+            	WHERE user.user_name = :userName
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userName" value="#[flowVars.userName]" />
+        </db:select>
+    </sub-flow>
+    
+    <sub-flow name="check-registration-code-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+        	<db:parameterized-query><![CDATA[
+            	SELECT 
+            	registration.first_name AS first_name, 
+            	registration.last_name AS last_name, 
+            	registration.code AS code
+            	FROM user_registrations AS registration
+            	WHERE registration.first_name = :firstName
+            	AND registration.last_name = :lastName
+            	AND registration.code = :code
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="firstName" value="#[flowVars.firstName.toLowerCase()]" />
+            <db:in-param name="lastName" value="#[flowVars.lastName.toLowerCase()]" />
+            <db:in-param name="code" value="#[flowVars.registrationCode]" />
+        </db:select>
+    </sub-flow>
+    
+    <sub-flow name="insert-user-flow">
+        <db:insert config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+        	<db:parameterized-query><![CDATA[
+            	INSERT INTO users(
+            		user_uid, 
+            		user_name, 
+            		password, 
+            		first_name, 
+            		last_name, 
+            		enabled, 
+            		date_created, 
+            		date_updated
+            	) VALUES (
+            		:userUID, 
+            		:userName, 
+            		:password, 
+            		:firstName, 
+            		:lastName, 
+            		:enabled, 
+            		:dateCreated, 
+            		:dateUpdated
+            	)
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userUID" value="#[message.id.toString()]" />
+            <db:in-param name="userName" value="#[flowVars.userName]" />
+            <db:in-param name="password" value="#[encodePassword(flowVars.password)]" />
+            <db:in-param name="firstName" value="#[flowVars.firstName]" />
+            <db:in-param name="lastName" value="#[flowVars.lastName]" />
+            <db:in-param name="enabled" value="#['1']" />
+            <db:in-param name="dateCreated" value="#[server.dateTime.format()]" />
+            <db:in-param name="dateUpdated" value="#[server.dateTime.format()]" />
+        </db:insert>
+    </sub-flow>
+
+</mule>

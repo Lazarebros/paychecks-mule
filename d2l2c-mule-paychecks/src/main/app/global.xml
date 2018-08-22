@@ -21,6 +21,19 @@
 
 	<context:property-placeholder location="file:${MULE_CONF_DIR}/properties/${MULE_ENV}-mule-paychecks.properties" />
 	
+	<configuration doc:name="Configuration">
+		<expression-language>
+			<global-functions>
+             	def checkPassword(password, encodedPassword) {
+                	return com.d2l2c.mule.paychecks.util.PaycheckUtil.checkPassword(password, encodedPassword);
+             	}
+             	def encodePassword(password) {
+                	return com.d2l2c.mule.paychecks.util.PaycheckUtil.encodePassword(password);
+             	}
+         	</global-functions>
+		</expression-language>
+	</configuration>
+	
 	<spring:beans>
 		<spring:bean id="Paychecks_Data_Source" class="org.enhydra.jdbc.standard.StandardDataSource">
 			<spring:property name="url" value="${paychecks.db.url}"/>
@@ -46,6 +59,9 @@
 	<db:generic-config name="Paychecks_Database_Configuration" dataSource-ref="Paychecks_Data_Source" doc:name="Generic Database Configuration">
     	<reconnect-forever />
     </db:generic-config>
+        
+    <custom-transformer name="contentToPaycheckTransformer" class="com.d2l2c.mule.paychecks.transformer.ContentToPaycheckTransformer" doc:name="Java"/>
+    <custom-transformer name="contentToUserTransformer" class="com.d2l2c.mule.paychecks.transformer.ContentToUserTransformer" doc:name="Java"/>
     
     <custom-transformer name="JavaToJsonSummaryTransformer" class="com.d2l2c.mule.paychecks.transformer.JavaToJsonSummaryTransformer" doc:name="Java"/>
     <custom-transformer name="JavaToJsonDetailsTransformer" class="com.d2l2c.mule.paychecks.transformer.JavaToJsonDetailsTransformer" doc:name="Java"/>

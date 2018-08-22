@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         
         <logger message="#[payload]" level="INFO" />
         
-        <custom-transformer class="com.d2l2c.mule.paychecks.transformer.ContentToPaycheckTransformer" doc:name="Java"/>
+        <transformer ref="contentToPaycheckTransformer" />
         
         <flow-ref name="mule-paychecks-process-flow" doc:name="mule-paychecks-process-flow"/>
     </flow>

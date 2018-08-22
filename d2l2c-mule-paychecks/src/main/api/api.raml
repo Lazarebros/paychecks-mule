@@ -8,12 +8,61 @@ mediaType: application/json
 
 types: 
   paycheck:
-    type: !include types/paycheckType.raml
+    type: !include types/paycheckType.raml 
+  user:
+    type: !include types/userType.raml
 
 documentation: 
 - title: D2l2C Paychechs API
   content: D2l2C Paychechs API
 
+/users:
+  /login:
+    get:
+      description: return the logged user
+      queryParameters:
+        user_name:
+          required: true
+          minLength: 3
+          type: string
+        user_password:
+          required: true
+          minLength: 3
+          type: string
+      responses:
+        200:
+          body:
+            application/json:
+              type: user
+  /register:
+    get:
+      description: return the user registration status
+      queryParameters:
+        first_name:
+          required: true
+          minLength: 3
+          type: string
+        last_name:
+          required: true
+          minLength: 3
+          type: string
+        user_name:
+          required: true
+          minLength: 3
+          type: string
+        user_password:
+          required: true
+          minLength: 3
+          type: string
+        registration_code:
+          required: true
+          minLength: 3
+          type: string
+      responses:
+        200:
+          body:
+            application/json:
+              type: user
 
 /paychecks:
   /summary:

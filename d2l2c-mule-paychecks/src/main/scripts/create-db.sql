@@ -10,21 +10,29 @@ SET SCHEMA salary;
 -- USER RELATED TABLES
 --
 
---DROP TABLE IF EXISTS users;
+--DROP TABLE IF EXISTS SALARY.users;
 --DROP TABLE IF EXISTS user_profiles;
 --DROP TABLE IF EXISTS users_user_profiles;
 --DROP TABLE IF EXISTS persistent_logins;
+--DROP TABLE IF EXISTS user_registrations;
 
+--ALTER TABLE SALARY.USERS ADD date_created TIMESTAMP NOT NULL DEFAULT now();
+--ALTER TABLE SALARY.USERS ADD USER_UID varchar(255) NOT NULL;
+--INSERT INTO user_registrations (first_name, last_name, code, date_created) VALUES ('first_name_test', 'last_name_test', 'code_test', now());
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS SALARY.users (
   user_id bigint(20) NOT NULL AUTO_INCREMENT,
-  user_name varchar(10) NOT NULL,
+  user_uid varchar(64) NOT NULL,
+  user_name varchar(64) NOT NULL,
   password varchar(64) NOT NULL,
-  first_name varchar(255) DEFAULT NULL,
-  last_name varchar(255) DEFAULT NULL,
+  first_name varchar(64) NOT NULL,
+  last_name varchar(64) NOT NULL,
   enabled BIT,
+  date_created TIMESTAMP NOT NULL DEFAULT now(),
+  date_updated TIMESTAMP NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id),
-  UNIQUE (user_name)
+  UNIQUE (user_name),
+  UNIQUE (user_uid)
 );
 
 /* user_profiles table contains all possible roles */
@@ -52,6 +60,17 @@ CREATE TABLE IF NOT EXISTS persistent_logins (
     last_used TIMESTAMP NOT NULL,
     PRIMARY KEY (series)
 );
+
+CREATE TABLE IF NOT EXISTS user_registrations (
+  id bigint(20) NOT NULL AUTO_INCREMENT,
+  first_name varchar(64) DEFAULT NULL,
+  last_name varchar(64) DEFAULT NULL,
+  code varchar(64) NOT NULL,
+  date_created TIMESTAMP NOT NULL DEFAULT now(),
+  PRIMARY KEY (id),
+  UNIQUE (first_name,last_name , code)
+);
+
 
 --
 -- PAYCHECK RELATED TABLES
