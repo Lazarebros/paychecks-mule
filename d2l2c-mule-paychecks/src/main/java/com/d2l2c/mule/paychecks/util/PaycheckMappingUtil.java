@@ -148,7 +148,7 @@ public class PaycheckMappingUtil {
 		paycheckSummary.setYearProgress((maxMonth * 100) / 12);
 		paycheckSummary.setNetPayRealMean(totalRealNetPay.divide(new BigDecimal(maxMonth), RoundingMode.HALF_UP));
 		
-		paycheckSummary.setPaycheckDetails(paycheckDetailsMap.values());
+		paycheckSummary.setPaycheckDetails(new ArrayList<PaycheckDetail>(paycheckDetailsMap.values()));
 
 		return paycheckSummary;
 	}
