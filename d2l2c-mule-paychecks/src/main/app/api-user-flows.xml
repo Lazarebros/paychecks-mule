@@ -13,12 +13,6 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 
-	<catch-exception-strategy name="paychecks-user-exception-handler">
-        <set-variable variableName="mainException" value="#[exception]" doc:name="Variable"/>
-        <logger level="ERROR" message="#[flowVars['mainException']]" doc:name="Logger"/>
-		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Server Error!&quot;}" doc:name="Set Payload"/>
-	</catch-exception-strategy>
-
     <flow name="user-login-flow">
         <set-variable variableName="userName" value="#[message.inboundProperties.'http.query.params'.user_name]" doc:name="Variable" />
         <set-variable variableName="password" value="#[message.inboundProperties.'http.query.params'.user_password]" doc:name="Variable" />
@@ -31,7 +25,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Login credentials are incorrect. Please try again!&quot;}" doc:name="Set Payload"/>
         	</otherwise>
         </choice>
-        <exception-strategy ref="paychecks-user-exception-handler" doc:name="paychecks-user-exception-handler" />
+        <exception-strategy ref="global-exception-handler" doc:name="global-exception-handler" />
     </flow>
 
     <flow name="user-registration-flow">
@@ -58,7 +52,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 		        </choice>
         	</otherwise>
         </choice>
-        <exception-strategy ref="paychecks-user-exception-handler" doc:name="paychecks-user-exception-handler" />
+        <exception-strategy ref="global-exception-handler" doc:name="global-exception-handler" />
     </flow>
     
     <sub-flow name="select-user-by-username-flow">

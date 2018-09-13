@@ -16,10 +16,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <file:inbound-endpoint path="${paycheck.file.input}" connector-ref="File" comparator="com.d2l2c.mule.paychecks.comparator.FilenameComparator" responseTimeout="10000" doc:name="File">
         	<file:filename-wildcard-filter pattern="*.pdf" />
         </file:inbound-endpoint>
-        <object-to-byte-array-transformer doc:name="Object to Byte Array"/>
         
-        <http:request config-ref="HTTP_Request_Paycheck_API_Configuration" path="/paychecks/import" method="POST" doc:name="HTTP"/>
-        
+        <http:request config-ref="HTTP_Request_Paycheck_API_Configuration" path="/paychecks/upload" method="POST" doc:name="HTTP"/>
     </flow>
     
 </mule>

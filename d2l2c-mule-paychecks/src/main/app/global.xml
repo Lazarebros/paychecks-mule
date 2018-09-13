@@ -65,5 +65,11 @@
     
     <custom-transformer name="JavaToJsonSummaryTransformer" class="com.d2l2c.mule.paychecks.transformer.JavaToJsonSummaryTransformer" doc:name="Java"/>
     <custom-transformer name="JavaToJsonDetailsTransformer" class="com.d2l2c.mule.paychecks.transformer.JavaToJsonDetailsTransformer" doc:name="Java"/>
+    
+    <catch-exception-strategy name="global-exception-handler">
+        <set-variable variableName="mainException" value="#[exception]" doc:name="Variable"/>
+        <logger level="ERROR" message="#[flowVars['mainException']]" doc:name="Logger"/>
+		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Server Error!&quot;}" doc:name="Set Payload"/>
+	</catch-exception-strategy>
 
 </mule>

@@ -179,12 +179,6 @@
 		    <artifactId>h2</artifactId>
 		    <version>${h2.database.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
-			<version>1.16</version>
-		</dependency>
 		
 		<dependency>
 		    <groupId>net.sf.dozer</groupId>

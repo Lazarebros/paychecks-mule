@@ -10,15 +10,12 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     
-    <flow name="mule-paychecks-import-paycheck-flow" processingStrategy="synchronous">
-        <object-to-byte-array-transformer doc:name="Object to Byte Array"/>
-        <custom-transformer class="com.d2l2c.mule.paychecks.transformer.ExtractFileContentTransformer" doc:name="Java"/>
-        
-        <logger message="#[payload]" level="INFO" />
-        
-        <transformer ref="contentToPaycheckTransformer" />
-        
-        <flow-ref name="mule-paychecks-process-flow" doc:name="mule-paychecks-process-flow"/>
+    <flow name="mule-paychecks-upload-paycheck-flow" processingStrategy="synchronous">
+        <object-to-byte-array-transformer doc:name="Object to Byte Array" />
+        <custom-transformer class="com.d2l2c.mule.paychecks.transformer.ExtractFileContentTransformer" doc:name="Java" />
+        <transformer ref="contentToPaycheckTransformer" doc:name="contentToPaycheckTransformer" />
+        <flow-ref name="mule-paychecks-process-flow" doc:name="mule-paychecks-process-flow" />
+        <exception-strategy ref="global-exception-handler" doc:name="global-exception-handler" />
     </flow>
     
     <flow name="mule-paychecks-process-flow">

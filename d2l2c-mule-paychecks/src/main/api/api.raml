@@ -89,8 +89,10 @@ documentation:
             body:
               application/json:
                 type: paycheck[]
-  /import:              
+  /upload:              
     post:
-      description: import Paychecks
+      description: upload Paycheck
       responses:
         200:
+          body:
+            application/json:
