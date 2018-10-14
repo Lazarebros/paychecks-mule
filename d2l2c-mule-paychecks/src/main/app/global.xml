@@ -19,7 +19,7 @@
 		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd">
 
-	<context:property-placeholder location="file:${MULE_CONF_DIR}/properties/${MULE_ENV}-mule-paychecks.properties" />
+	<context:property-placeholder location="file:${MULE_CONF_DIR}/Paychecks/properties/${MULE_ENV}-mule-paychecks.properties" />
 	
 	<configuration doc:name="Configuration">
 		<expression-language>
@@ -41,16 +41,7 @@
 		</spring:bean>
 	</spring:beans>
 	
-	<file:connector name="File" moveToDirectory="${paycheck.file.archive}" streaming="true" validateConnections="true" doc:name="File" />
-	
-	<!-- HTTP(s) Configuration -->
-	<tls:context name="sharedTlsContext" doc:name="TLS Context">
-      	<tls:trust-store />
-        <tls:key-store path="${MULE_CONF_DIR}/ssl/${keystore.file.name}" password="${keystore.password}" keyPassword="${keystore.keyPassword}" />
-    </tls:context>
-
-  	<http:listener-config name="httpsListenerConfig" protocol="HTTPS" host="${http.host}" port="${https.port}" tlsContext-ref="sharedTlsContext" doc:name="HTTP Listener Configuration"/>
-	<http:listener-config name="httpListenerConfig" host="${http.host}" port="${http.port}" doc:name="HTTP Listener Configuration"/>
+	<file:connector name="File" moveToDirectory="${paychecks.file.archive}" streaming="true" validateConnections="true" doc:name="File" />
 	
 	<http:request-config name="HTTP_Request_Paycheck_API_Configuration" protocol="HTTP" host="localhost" basePath="/api" port="8081" doc:name="HTTP Request Configuration">
         <http:basic-authentication username="test" password="test1234" preemptive="true"/>

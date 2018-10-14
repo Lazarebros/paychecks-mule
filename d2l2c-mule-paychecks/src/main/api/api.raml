@@ -17,23 +17,6 @@ documentation:
   content: D2l2C Paychechs API
 
 /users:
-  /login:
-    get:
-      description: return the logged user
-      queryParameters:
-        user_name:
-          required: true
-          minLength: 3
-          type: string
-        user_password:
-          required: true
-          minLength: 3
-          type: string
-      responses:
-        200:
-          body:
-            application/json:
-              type: user
   /register:
     get:
       description: return the user registration status
@@ -58,6 +41,14 @@ documentation:
           required: true
           minLength: 3
           type: string
+      responses:
+        200:
+          body:
+            application/json:
+              type: user
+  /login:
+    get:
+      description: return the logged user
       responses:
         200:
           body:

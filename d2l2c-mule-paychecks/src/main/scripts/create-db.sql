@@ -10,7 +10,7 @@ SET SCHEMA salary;
 -- USER RELATED TABLES
 --
 
---DROP TABLE IF EXISTS SALARY.users;
+--DROP TABLE IF EXISTS users;
 --DROP TABLE IF EXISTS user_profiles;
 --DROP TABLE IF EXISTS users_user_profiles;
 --DROP TABLE IF EXISTS persistent_logins;
@@ -20,14 +20,14 @@ SET SCHEMA salary;
 --ALTER TABLE SALARY.USERS ADD USER_UID varchar(255) NOT NULL;
 --INSERT INTO user_registrations (first_name, last_name, code, date_created) VALUES ('first_name_test', 'last_name_test', 'code_test', now());
 
-CREATE TABLE IF NOT EXISTS SALARY.users (
+CREATE TABLE IF NOT EXISTS users (
   user_id bigint(20) NOT NULL AUTO_INCREMENT,
   user_uid varchar(64) NOT NULL,
   user_name varchar(64) NOT NULL,
   password varchar(64) NOT NULL,
   first_name varchar(64) NOT NULL,
   last_name varchar(64) NOT NULL,
-  enabled BIT,
+  enabled char(1) NOT NULL DEFAULT 0,
   date_created TIMESTAMP NOT NULL DEFAULT now(),
   date_updated TIMESTAMP NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id),
@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS user_registrations (
   id bigint(20) NOT NULL AUTO_INCREMENT,
   first_name varchar(64) DEFAULT NULL,
   last_name varchar(64) DEFAULT NULL,
+  enabled char(1) NOT NULL DEFAULT 1,
   code varchar(64) NOT NULL,
   date_created TIMESTAMP NOT NULL DEFAULT now(),
   PRIMARY KEY (id),

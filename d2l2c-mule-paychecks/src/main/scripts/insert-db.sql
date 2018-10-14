@@ -1,6 +1,10 @@
-DELETE FROM paychecks;
-DELETE FROM rates;
-DELETE FROM companies;
+
+
+/* USER PROFILES */
+INSERT INTO user_profiles (profile_id, type) VALUES
+(1, 'ADMIN'),
+(2, 'DBA'),
+(3, 'USER');
 
 /* COMPANIES */
 INSERT INTO companies (company_id, code, name) VALUES (1,'MMI', 'Mitchell Martin INC');
@@ -28,3 +32,6 @@ VALUES (6, 2, 2016, 02, 2, parsedatetime('2016-02-16', 'yyyy-MM-dd'), parsedatet
 /* RATES */
 INSERT INTO rates (rate_id, company_id, hourly_rate, start_date, end_date, expected_gross, expected_net_pay) VALUES (1, 1, 81.00, parsedatetime('2015-02-16', 'yyyy-MM-dd'), NULL, 6390.00, 4415.00);
 INSERT INTO rates (rate_id, company_id, hourly_rate, start_date, end_date, expected_gross, expected_net_pay) VALUES (2, 2, 100.00, parsedatetime('2015-02-16', 'yyyy-MM-dd'), NULL, 8000.00, 5600.00);
+
+/* USER REGISTRATION */
+INSERT INTO user_registrations (first_name, last_name, code, date_created) VALUES ('first_name_test', 'last_name_test', 'code_test', now());

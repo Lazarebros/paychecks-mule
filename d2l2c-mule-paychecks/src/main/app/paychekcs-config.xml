@@ -13,7 +13,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     
     <flow name="mule-paychecks-read-file-flow" processingStrategy="synchronous">
-        <file:inbound-endpoint path="${paycheck.file.input}" connector-ref="File" comparator="com.d2l2c.mule.paychecks.comparator.FilenameComparator" responseTimeout="10000" doc:name="File">
+        <file:inbound-endpoint path="${paychecks.file.input}" connector-ref="File" comparator="com.d2l2c.mule.paychecks.comparator.FilenameComparator" responseTimeout="10000" doc:name="File">
         	<file:filename-wildcard-filter pattern="*.pdf" />
         </file:inbound-endpoint>
         

@@ -2,13 +2,19 @@
 
 <mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
 	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file"
-	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" 
+	xmlns:core="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+		http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+		http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
     
     <flow name="mule-paychecks-upload-paycheck-flow" processingStrategy="synchronous">
         <object-to-byte-array-transformer doc:name="Object to Byte Array" />
@@ -87,7 +93,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	WHERE user_name = :userName
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userName" value="#[flowVars.userName]" />
+            <db:in-param name="userName" value="#[flowVars.userName]" type="VARCHAR" />
         </db:select>
         <choice doc:name="Choice Select User ID">
         	<when expression="#[flowVars.selectResultSet.size() == 0]">
@@ -111,7 +117,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	WHERE code = :companyCode
             	]]>
             </db:parameterized-query>
-            <db:in-param name="companyCode" value="#[payload.companyCode]" />
+            <db:in-param name="companyCode" value="#[payload.companyCode]" type="VARCHAR" />
         </db:select>
         <choice doc:name="Choice Select Company Id">
         	<when expression="#[flowVars.selectResultSet.size() == 0]">
@@ -133,8 +139,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	AND company_id = :companyId
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userId" value="#[flowVars.userId]" />
-            <db:in-param name="companyId" value="#[flowVars.companyId]" />
+            <db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
+            <db:in-param name="companyId" value="#[flowVars.companyId]" type="BIGINT" />
         </db:select>
         <choice doc:name="Choice Select User Company Id">
         	<when expression="#[flowVars.selectResultSet.size() == 0]">
@@ -156,8 +162,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	AND net_percentage_of_gross = :netPercentageOfGross
             	]]>
             </db:parameterized-query>
-            <db:in-param name="expectedNumberOfHours" value="#[payload.expectedNumberOfHours]" />
-            <db:in-param name="netPercentageOfGross" value="#[payload.netPercentageOfGross]" />
+            <db:in-param name="expectedNumberOfHours" value="#[payload.expectedNumberOfHours]" type="BIGINT" />
+            <db:in-param name="netPercentageOfGross" value="#[payload.netPercentageOfGross]" type="DECIMAL" />
         </db:select>
         <choice doc:name="Choice Select Config Id">
         	<when expression="#[flowVars.selectResultSet.size() == 0]">
@@ -185,8 +191,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	)
             	]]>
             </db:parameterized-query>
-            <db:in-param name="code" value="#[payload.companyCode]" />
-            <db:in-param name="name" value="#[payload.companyName]" />
+            <db:in-param name="code" value="#[payload.companyCode]" type="VARCHAR" />
+            <db:in-param name="name" value="#[payload.companyName]" type="VARCHAR" />
         </db:insert>
     </sub-flow>
 
@@ -203,8 +209,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	)
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userId" value="#[flowVars.userId]" />
-            <db:in-param name="companyId" value="#[flowVars.companyId]" />
+            <db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
+            <db:in-param name="companyId" value="#[flowVars.companyId]" type="BIGINT" />
         </db:insert>
     </sub-flow>
 
@@ -221,8 +227,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	)
             	]]>
             </db:parameterized-query>
-			<db:in-param name="expectedNumberOfHours" value="#[payload.expectedNumberOfHours]" />
-			<db:in-param name="netPercentageOfGross" value="#[payload.netPercentageOfGross]" />
+			<db:in-param name="expectedNumberOfHours" value="#[payload.expectedNumberOfHours]" type="BIGINT" />
+			<db:in-param name="netPercentageOfGross" value="#[payload.netPercentageOfGross]" type="DECIMAL" />
         </db:insert>
     </sub-flow>
 
@@ -264,20 +270,20 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 				)
 				]]>
 			</db:parameterized-query>
-			<db:in-param name="userId" value="#[flowVars.userId]" />
-			<db:in-param name="companyId" value="#[flowVars.companyId]" />
-			<db:in-param name="configId" value="#[flowVars.configId]" />
-			<db:in-param name="year" value="#[payload.year]" />
-			<db:in-param name="month" value="#[payload.month]" />
-			<db:in-param name="bi_week" value="#[payload.biWeek]" />
+			<db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
+			<db:in-param name="companyId" value="#[flowVars.companyId]" type="BIGINT" />
+			<db:in-param name="configId" value="#[flowVars.configId]" type="BIGINT" />
+			<db:in-param name="year" value="#[payload.year]" type="INTEGER" />
+			<db:in-param name="month" value="#[payload.month]" type="INTEGER" />
+			<db:in-param name="bi_week" value="#[payload.biWeek]" type="INTEGER" />
 			<db:in-param name="payDate" value="#[payload.payDate]" type="DATE" />
 			<db:in-param name="startDate" value="#[payload.startDate]" type="DATE" />
 			<db:in-param name="endDate" value="#[payload.endDate]" type="DATE" />
-			<db:in-param name="numberOfHours" value="#[payload.numberOfHours]" />
-			<db:in-param name="hourlyRate" value="#[payload.hourlyRate]" />
-			<db:in-param name="grossAmount" value="#[payload.grossAmount]" />
-			<db:in-param name="netPay" value="#[payload.netPay]" />
-			<db:in-param name="reimbursement" value="#[payload.reimbursement]" />
+			<db:in-param name="numberOfHours" value="#[payload.numberOfHours]" type="BIGINT" />
+			<db:in-param name="hourlyRate" value="#[payload.hourlyRate]" type="DECIMAL" />
+			<db:in-param name="grossAmount" value="#[payload.grossAmount]" type="DECIMAL" />
+			<db:in-param name="netPay" value="#[payload.netPay]" type="DECIMAL" />
+			<db:in-param name="reimbursement" value="#[payload.reimbursement]" type="DECIMAL" />
         </db:insert>
 		<logger message="Done Inserting Paycheck into Database..." level="INFO" doc:name="Logger"/>
     </sub-flow>
@@ -293,8 +299,8 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
             	AND user_id = :userId
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userId" value="#[flowVars.userId]" />
-            <db:in-param name="endDate" value="#[payload.startDate]" />
+            <db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
+            <db:in-param name="endDate" value="#[payload.startDate]" type="DATE" />
         </db:update>
     </sub-flow>
     

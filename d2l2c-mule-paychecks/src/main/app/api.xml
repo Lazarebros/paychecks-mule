@@ -24,9 +24,9 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
     </apikit:config>
     
     <flow name="api-http-main">
-        <http:listener config-ref="httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <http:listener config-ref="sharedHttpListenerConfig" path="${paychecks.api.url}" doc:name="HTTP"/>
         <choice>
-        	<when expression="#[message.inboundProperties.'http.request.path'.contains('users')]">
+        	<when expression="#[message.inboundProperties.'http.request.path'.contains('register')]">
         		<logger message="Not Secure!!" level="INFO" />
         	</when>
         	<otherwise>
@@ -37,19 +37,19 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
         <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
     </flow>
     
-    <flow name="api-https-main">
-        <http:listener config-ref="httpsListenerConfig" path="/api/*" doc:name="HTTP"/>
-        <choice>
-        	<when expression="#[message.inboundProperties.'http.request.path'.contains('users')]">
-        		<logger message="Not Secure!!" level="INFO" />
-        	</when>
-        	<otherwise>
-        		<flow-ref name="authenticate-request-flow" doc:name="api-requets-main" />
-        	</otherwise>
-        </choice>
-        <apikit:router config-ref="API-Router-Config" doc:name="APIkit Router" />
-        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
-    </flow>
+<!--     <flow name="api-https-main"> -->
+<!--         <http:listener config-ref="httpsListenerConfig" path="/api/*" doc:name="HTTP"/> -->
+<!--         <choice> -->
+<!--         	<when expression="#[message.inboundProperties.'http.request.path'.contains('users')]"> -->
+<!--         		<logger message="Not Secure!!" level="INFO" /> -->
+<!--         	</when> -->
+<!--         	<otherwise> -->
+<!--         		<flow-ref name="authenticate-request-flow" doc:name="api-requets-main" /> -->
+<!--         	</otherwise> -->
+<!--         </choice> -->
+<!--         <apikit:router config-ref="API-Router-Config" doc:name="APIkit Router" /> -->
+<!--         <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/> -->
+<!--     </flow> -->
     
     <sub-flow name="authenticate-request-flow">
         <http:basic-security-filter realm="mule-realm" securityProviders="jdbc-provider"/>

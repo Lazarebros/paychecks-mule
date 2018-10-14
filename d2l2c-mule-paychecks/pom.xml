@@ -193,7 +193,14 @@
 			<version>${mule.version}</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+	<dependency>
+            <groupId>com.d2l2c</groupId>
+            <artifactId>d2l2c-mule-domain</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+            <type>zip</type>
+        </dependency>
+    </dependencies>
 
 	<repositories>
 		<repository>

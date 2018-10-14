@@ -14,11 +14,10 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 
     <flow name="user-login-flow">
-        <set-variable variableName="userName" value="#[message.inboundProperties.'http.query.params'.user_name]" doc:name="Variable" />
-        <set-variable variableName="password" value="#[message.inboundProperties.'http.query.params'.user_password]" doc:name="Variable" />
+    	<logger message="Starting user login flow..." level="INFO" />
         <flow-ref name="select-user-by-username-flow" doc:name="select-user-by-username-flow" />
         <choice>
-        	<when expression="#[flowVars.selectResultSet.size() &gt; 0 and checkPassword(flowVars.password, flowVars.selectResultSet.get(0).password)]">
+        	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
         		<transformer ref="contentToUserTransformer" />
         	</when>
         	<otherwise>
@@ -29,6 +28,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
     </flow>
 
     <flow name="user-registration-flow">
+    	<logger message="Starting user registration flow..." level="INFO" />
     	<set-variable variableName="firstName" value="#[message.inboundProperties.'http.query.params'.first_name]" doc:name="Variable" />
     	<set-variable variableName="lastName" value="#[message.inboundProperties.'http.query.params'.last_name]" doc:name="Variable" />
         <set-variable variableName="userName" value="#[message.inboundProperties.'http.query.params'.user_name]" doc:name="Variable" />
@@ -37,16 +37,18 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         <flow-ref name="select-user-by-username-flow" doc:name="select-user-by-username-flow" />
         <choice>
         	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
+        		<logger message="User name already exist" level="INFO" />
         		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;User name already exist. Please try with another user name!&quot;}" doc:name="Set Payload"/>
         	</when>
         	<otherwise>
 		        <flow-ref name="check-registration-code-flow" doc:name="check-registration-code-flow" />
 		        <choice>
 		        	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
-		        		<flow-ref name="insert-user-flow" doc:name="insert-user-flow" />
-		        		<set-payload value="{&quot;SUCCESS&quot;: true}" doc:name="Set Payload"/>
+		        		<logger message="Registration code is valid!" level="INFO" />
+		        		<flow-ref name="process_user-registration-flow" doc:name="process_user-registration-flow" />
 		        	</when>
 		        	<otherwise>
+		        		<logger message="Registration code is not valid!" level="INFO" />
 		        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Wrong registration code!&quot;}" doc:name="Set Payload"/>
 		        	</otherwise>
 		        </choice>
@@ -54,6 +56,36 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         </choice>
         <exception-strategy ref="global-exception-handler" doc:name="global-exception-handler" />
     </flow>
+    
+    <sub-flow name="process_user-registration-flow">
+        <flow-ref name="select-user-profile-flow" doc:name="select-user-profile-flow" />
+        <choice>
+        	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
+        		<set-variable variableName="profileId" value="#[flowVars.selectResultSet.get(0).profile_id]" />
+        		<logger message="User profile is valid: profile id: #[flowVars.profileId]" level="INFO" />
+        		<flow-ref name="insert-user-flow" doc:name="insert-user-flow" />
+        		<flow-ref name="insert-user-profile-flow" doc:name="insert-user-profile-flow" />
+        		<set-payload value="{&quot;SUCCESS&quot;: true}" doc:name="Set Payload"/>
+        	</when>
+        	<otherwise>
+        		<logger message="User profile is not valid!" level="INFO" />
+        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;User profile is not valid!&quot;}" doc:name="Set Payload"/>
+        	</otherwise>
+        </choice>
+    </sub-flow>
+    
+    <sub-flow name="select-user-profile-flow">
+        <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+        	<db:parameterized-query><![CDATA[
+            	SELECT 
+            	profile.profile_id AS profile_id
+            	FROM user_profiles AS profile
+            	WHERE profile.type = :type
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="type" value="#['USER']" type="VARCHAR" />
+        </db:select>
+    </sub-flow>
     
     <sub-flow name="select-user-by-username-flow">
         <db:select config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
@@ -72,7 +104,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	WHERE user.user_name = :userName
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userName" value="#[flowVars.userName]" />
+            <db:in-param name="userName" value="#[flowVars.userName]" type="VARCHAR" />
         </db:select>
     </sub-flow>
     
@@ -89,9 +121,9 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	AND registration.code = :code
             	]]>
             </db:parameterized-query>
-            <db:in-param name="firstName" value="#[flowVars.firstName.toLowerCase()]" />
-            <db:in-param name="lastName" value="#[flowVars.lastName.toLowerCase()]" />
-            <db:in-param name="code" value="#[flowVars.registrationCode]" />
+            <db:in-param name="firstName" value="#[flowVars.firstName.toLowerCase()]" type="VARCHAR" />
+            <db:in-param name="lastName" value="#[flowVars.lastName.toLowerCase()]" type="VARCHAR" />
+            <db:in-param name="code" value="#[flowVars.registrationCode]" type="VARCHAR" />
         </db:select>
     </sub-flow>
     
@@ -104,29 +136,41 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             		password, 
             		first_name, 
             		last_name, 
-            		enabled, 
-            		date_created, 
-            		date_updated
+            		enabled
             	) VALUES (
             		:userUID, 
             		:userName, 
             		:password, 
             		:firstName, 
             		:lastName, 
-            		:enabled, 
-            		:dateCreated, 
-            		:dateUpdated
+            		:enabled
             	)
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userUID" value="#[message.id.toString()]" />
-            <db:in-param name="userName" value="#[flowVars.userName]" />
-            <db:in-param name="password" value="#[encodePassword(flowVars.password)]" />
-            <db:in-param name="firstName" value="#[flowVars.firstName]" />
-            <db:in-param name="lastName" value="#[flowVars.lastName]" />
-            <db:in-param name="enabled" value="#['1']" />
-            <db:in-param name="dateCreated" value="#[server.dateTime.format()]" />
-            <db:in-param name="dateUpdated" value="#[server.dateTime.format()]" />
+            <db:in-param name="userUID" value="#[message.id.toString()]" type="VARCHAR" />
+            <db:in-param name="userName" value="#[flowVars.userName]" type="VARCHAR" />
+            <db:in-param name="password" value="#[encodePassword(flowVars.password)]" type="VARCHAR" />
+            <db:in-param name="firstName" value="#[flowVars.firstName]" type="VARCHAR" />
+            <db:in-param name="lastName" value="#[flowVars.lastName]" type="VARCHAR" />
+            <db:in-param name="enabled" value="#[1]" type="CHAR" />
+        </db:insert>
+    </sub-flow>
+    
+    <sub-flow name="insert-user-profile-flow">
+        <db:insert config-ref="Paychecks_Database_Configuration" target="#[flowVars.selectResultSet]" doc:name="Database">
+        	<db:parameterized-query><![CDATA[
+            	INSERT INTO users_user_profiles (
+            		user_id, 
+            		profile_id
+            	)
+	  			SELECT user.user_id, 
+	  			profile.profile_id 
+	  			FROM users user, user_profiles profile
+				WHERE user.user_name =:userName AND profile.profile_id =:profileId 
+            	]]>
+            </db:parameterized-query>
+            <db:in-param name="userName" value="#[flowVars.userName]" type="VARCHAR" />
+            <db:in-param name="profileId" value="#[flowVars.profileId]" type="BIGINT" />
         </db:insert>
     </sub-flow>
 

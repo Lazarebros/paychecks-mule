@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
-	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
-	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file"
 	xmlns="http://www.mulesoft.org/schema/mule/core" 
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
 	xmlns:spring="http://www.springframework.org/schema/beans" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" 
+	xmlns:core="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+		http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+		http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+		http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 
     <flow name="paychechs-flow">
         <flow-ref name="mule-paychecks-check-user-flow" doc:name="mule-paychecks-check-user-flow"/>
@@ -41,25 +44,11 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	WHERE user.user_id = :userId
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userId" value="#[flowVars.userId]" />
+            <db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
         </db:select>
         
         <transformer ref="JavaToJsonSummaryTransformer" />
         
-<!--         <choice doc:name="Choice"> -->
-<!--         	<when expression="#[payload.size() != 0]"> -->
-<!-- 		       	<dw:transform-message doc:name="Transform Message"> -->
-<!-- 		            <dw:input-payload mimeType="application/java" /> -->
-<!-- 		           	<dw:set-payload resource="dw_mappings/paychecks_export_summarized.dwl" /> -->
-<!-- 		        </dw:transform-message> -->
-<!--         	</when> -->
-<!--         	<otherwise> -->
-<!--         		<dw:transform-message doc:name="Transform Message"> -->
-<!-- 		            <dw:input-payload mimeType="application/java" /> -->
-<!-- 		            <dw:set-payload resource="dw_mappings/no_records.dwl" /> -->
-<!-- 		        </dw:transform-message> -->
-<!--         	</otherwise> -->
-<!--         </choice> -->
     </flow>
     
     <flow name="paychechs-year-flow">
@@ -91,8 +80,8 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	AND pay.year = :year
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userId" value="#[flowVars.userId]" />
-            <db:in-param name="year" value="#[flowVars.year]" />
+            <db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
+            <db:in-param name="year" value="#[flowVars.year]" type="INTEGER" />
         </db:select>
         
         <transformer ref="JavaToJsonDetailsTransformer" />
@@ -129,30 +118,13 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
             	AND pay.month = :month
             	]]>
             </db:parameterized-query>
-            <db:in-param name="userId" value="#[flowVars.userId]" />
-            <db:in-param name="year" value="#[flowVars.year]" />
-            <db:in-param name="month" value="#[flowVars.month]" />
+            <db:in-param name="userId" value="#[flowVars.userId]" type="BIGINT" />
+            <db:in-param name="year" value="#[flowVars.year]" type="INTEGER" />
+            <db:in-param name="month" value="#[flowVars.month]" type="INTEGER" />
         </db:select>
         
         <transformer ref="JavaToJsonDetailsTransformer" />
         
     </flow>
-    
-    <sub-flow name="paychechs-transform-flow">
-       	<choice doc:name="Choice">
-        	<when expression="#[payload.size() != 0]">
-		       	<dw:transform-message doc:name="Transform Message">
-		            <dw:input-payload mimeType="application/java" />
-		            <dw:set-payload resource="dw_mappings/paychecks_export.dwl" />
-		        </dw:transform-message>
-        	</when>
-        	<otherwise>
-        		<dw:transform-message doc:name="Transform Message">
-		            <dw:input-payload mimeType="application/java" />
-		            <dw:set-payload resource="dw_mappings/no_records.dwl" />
-		        </dw:transform-message>
-        	</otherwise>
-        </choice>
-    </sub-flow>
 
 </mule>
