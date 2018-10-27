@@ -43,7 +43,7 @@
 	
 	<file:connector name="File" moveToDirectory="${paychecks.file.archive}" streaming="true" validateConnections="true" doc:name="File" />
 	
-	<http:request-config name="HTTP_Request_Paycheck_API_Configuration" protocol="HTTP" host="localhost" basePath="/api" port="8081" doc:name="HTTP Request Configuration">
+	<http:request-config name="HTTP_Request_Paycheck_API_Configuration" protocol="HTTP" host="localhost" basePath="${paychecks.base.url}" port="${paychecks.http.port}" doc:name="HTTP Request Configuration">
         <http:basic-authentication username="test" password="test1234" preemptive="true"/>
 	</http:request-config>
 	
