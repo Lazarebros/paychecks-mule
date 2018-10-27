@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
 	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file"
 	xmlns="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
@@ -8,7 +8,7 @@
 	xmlns:db="http://www.mulesoft.org/schema/mule/db" 
 	xmlns:core="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xsi:schemaLocation="
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd 
 		http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
 		http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 		http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
@@ -32,16 +32,8 @@
     </flow>
 
     <sub-flow name="mule-paychecks-check-user-flow">
-        <choice doc:name="Choice User Name">
-        	<when expression="#[flowVars.?userName != empty]">
-        		<flow-ref name="mule-paychecks-select-user-flow" doc:name="mule-paychecks-select-user-flow"/>
-        	</when>
-        	<otherwise>
-        		<scripting:component doc:name="Groovy">
-                    <scripting:script engine="Groovy"><![CDATA[throw new Exception("User Not Logged!!!");]]></scripting:script>
-                </scripting:component>
-        	</otherwise>
-        </choice>
+        <validation:is-true expression="#[flowVars.?userName != empty]" message="User Not Logged!!!" doc:name="Validate username is not empty" />
+        <flow-ref name="mule-paychecks-select-user-flow" doc:name="mule-paychecks-select-user-flow"/>
     </sub-flow>
 
     <sub-flow name="mule-paychecks-check-company-flow">
@@ -95,18 +87,9 @@
             </db:parameterized-query>
             <db:in-param name="userName" value="#[flowVars.userName]" type="VARCHAR" />
         </db:select>
-        <choice doc:name="Choice Select User ID">
-        	<when expression="#[flowVars.selectResultSet.size() == 0]">
-        		<logger message="User Not Found With User Name: #[flowVars.userName]" level="WARN" doc:name="Logger"/>
-        		<scripting:component doc:name="Groovy">
-                    <scripting:script engine="Groovy"><![CDATA[throw new Exception("User Does Not Exist!!!");]]></scripting:script>
-                </scripting:component>
-        	</when>
-        	<otherwise>
-		        <set-variable variableName="userId" value="#[flowVars.selectResultSet.get(0).user_id]" doc:name="Variable" />
-		        <logger message="Found User Id: #[flowVars.userId]" level="INFO" doc:name="Logger"/>
-        	</otherwise>
-        </choice>
+        <validation:is-true expression="#[flowVars.selectResultSet.size() != 0]" message="User Does Not Exist!!!" />
+        <set-variable variableName="userId" value="#[flowVars.selectResultSet.get(0).user_id]" doc:name="Variable" />
+        <logger message="Found User Id: #[flowVars.userId]" level="INFO" doc:name="Logger"/>
     </sub-flow>
 
     <sub-flow name="mule-paychecks-select-company-flow">
