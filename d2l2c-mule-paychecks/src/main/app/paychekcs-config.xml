@@ -17,7 +17,10 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         	<file:filename-wildcard-filter pattern="*.pdf" />
         </file:inbound-endpoint>
         
-        <http:request config-ref="HTTP_Request_Paycheck_API_Configuration" path="/api/paychecks/upload" method="POST" doc:name="HTTP"/>
+        <set-variable variableName="userName" value="dayan.lazare" doc:name="Variable" />
+        <flow-ref name="paychecks-upload-paycheck-flow" doc:name="paychecks-upload-paycheck-flow" />
+        
+<!--         <http:request config-ref="HTTP_Request_Paycheck_API_Configuration" path="/api/paychecks/upload" method="POST" doc:name="HTTP"/> -->
     </flow>
     
 </mule>

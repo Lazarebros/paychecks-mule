@@ -34,4 +34,4 @@ INSERT INTO rates (rate_id, company_id, hourly_rate, start_date, end_date, expec
 INSERT INTO rates (rate_id, company_id, hourly_rate, start_date, end_date, expected_gross, expected_net_pay) VALUES (2, 2, 100.00, parsedatetime('2015-02-16', 'yyyy-MM-dd'), NULL, 8000.00, 5600.00);
 
 /* USER REGISTRATION */
-INSERT INTO user_registrations (first_name, last_name, code, date_created) VALUES ('first_name_test', 'last_name_test', 'code_test', now());
+INSERT INTO user_registrations (first_name, last_name, profile_id, code, date_created) VALUES ('first_name_test', 'last_name_test', 3, 'code_test', now());

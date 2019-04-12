@@ -1,53 +1,62 @@
 #%RAML 1.0
 ---
 title: D2l2C Paychechs API
-baseUri: https://d2l2c.com/{version}
-version: v1
-
-mediaType: application/json
-
-types: 
-  paycheck:
-    type: !include types/paycheckType.raml 
-  user:
-    type: !include types/userType.raml
+version: v1.0
 
 documentation: 
 - title: D2l2C Paychechs API
   content: D2l2C Paychechs API
 
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+
+securedBy: [basic]
+
+mediaType: application/json
+
+types: 
+  paycheck:
+    type: !include types/paycheckType.raml
+  user:
+    type: !include types/userType.raml
+
 /users:
   /register:
-    get:
+    post:
       description: return the user registration status
-      queryParameters:
-        first_name:
-          required: true
-          minLength: 3
-          type: string
-        last_name:
-          required: true
-          minLength: 3
-          type: string
-        user_name:
-          required: true
-          minLength: 3
-          type: string
-        user_password:
-          required: true
-          minLength: 3
-          type: string
-        registration_code:
-          required: true
-          minLength: 3
-          type: string
+      body:
+        multipart/form-data:
+          properties:
+            first_name:
+              required: true
+              minLength: 3
+              type: string
+            last_name:
+              required: true
+              minLength: 3
+              type: string
+            user_name:
+              required: true
+              minLength: 3
+              type: string
+            user_password:
+              required: true
+              minLength: 3
+              type: string
+            registration_code:
+              required: true
+              minLength: 3
+              type: string
       responses:
         200:
           body:
             application/json:
               type: user
   /login:
-    get:
+    post:
       description: return the logged user
       responses:
         200:
@@ -65,6 +74,8 @@ documentation:
             application/json:
               type: paycheck[]
   /{year}:
+    uriParameters:
+        year: number
     get:
       description: return the paychecks
       responses:
@@ -73,6 +84,8 @@ documentation:
             application/json:
               type: paycheck[]
     /{month}:
+      uriParameters:
+        month: number
       get:
         description: return the paychecks
         responses:

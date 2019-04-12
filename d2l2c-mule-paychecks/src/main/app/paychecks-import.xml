@@ -16,7 +16,7 @@
 		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
     
-    <flow name="mule-paychecks-upload-paycheck-flow" processingStrategy="synchronous">
+    <flow name="paychecks-upload-paycheck-flow" processingStrategy="synchronous">
         <object-to-byte-array-transformer doc:name="Object to Byte Array" />
         <custom-transformer class="com.d2l2c.mule.paychecks.transformer.ExtractFileContentTransformer" doc:name="Java" />
         <transformer ref="contentToPaycheckTransformer" doc:name="contentToPaycheckTransformer" />

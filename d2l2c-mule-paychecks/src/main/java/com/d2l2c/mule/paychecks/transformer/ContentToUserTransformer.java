@@ -16,8 +16,8 @@ import org.mule.transformer.AbstractMessageTransformer;
  */
 public class ContentToUserTransformer extends AbstractMessageTransformer {
 
-	private static final String SUCCESS_PROP_NAME = "SUCCESS";
-	private static final String PASSWORD_PROP_NAME = "PASSWORD";
+	private static final String SUCCESS_PROP_NAME = "success";
+	private static final String PASSWORD_PROP_NAME = "password";
 	private static final String SELECT_RESULT_SET_NAME = "selectResultSet";
 
 	@SuppressWarnings("unchecked")

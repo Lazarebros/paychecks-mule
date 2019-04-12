@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         		<transformer ref="contentToUserTransformer" />
         	</when>
         	<otherwise>
-        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Login credentials are incorrect. Please try again!&quot;}" doc:name="Set Payload"/>
+        		<set-payload value="{&quot;success&quot;: false, &quot;error_message&quot;: &quot;Login credentials are incorrect. Please try again!&quot;}" doc:name="Set Payload"/>
         	</otherwise>
         </choice>
         <exception-strategy ref="global-exception-handler" doc:name="global-exception-handler" />
@@ -29,16 +29,18 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 
     <flow name="user-registration-flow">
     	<logger message="Starting user registration flow..." level="INFO" />
-    	<set-variable variableName="firstName" value="#[message.inboundProperties.'http.query.params'.first_name]" doc:name="Variable" />
-    	<set-variable variableName="lastName" value="#[message.inboundProperties.'http.query.params'.last_name]" doc:name="Variable" />
-        <set-variable variableName="userName" value="#[message.inboundProperties.'http.query.params'.user_name]" doc:name="Variable" />
-        <set-variable variableName="password" value="#[message.inboundProperties.'http.query.params'.user_password]" doc:name="Variable" />
-    	<set-variable variableName="registrationCode" value="#[message.inboundProperties.'http.query.params'.registration_code]" doc:name="Variable" />
+    	
+    	<set-variable variableName="firstName" value="#[new String(message.inboundAttachments.'first_name'.dataSource.content)]" doc:name="Variable" />
+    	<set-variable variableName="lastName" value="#[new String(message.inboundAttachments.'last_name'.dataSource.content)]" doc:name="Variable" />
+    	<set-variable variableName="userName" value="#[new String(message.inboundAttachments.'user_name'.dataSource.content)]" doc:name="Variable" />
+    	<set-variable variableName="password" value="#[new String(message.inboundAttachments.'user_password'.dataSource.content)]" doc:name="Variable" />
+    	<set-variable variableName="registrationCode" value="#[new String(message.inboundAttachments.'registration_code'.dataSource.content)]" doc:name="Variable" />
+        
         <flow-ref name="select-user-by-username-flow" doc:name="select-user-by-username-flow" />
         <choice>
         	<when expression="#[flowVars.selectResultSet.size() &gt; 0]">
         		<logger message="User name already exist" level="INFO" />
-        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;User name already exist. Please try with another user name!&quot;}" doc:name="Set Payload"/>
+        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;error_message&quot;: &quot;User name already exist. Please try with another user name!&quot;}" doc:name="Set Payload"/>
         	</when>
         	<otherwise>
 		        <flow-ref name="check-registration-code-flow" doc:name="check-registration-code-flow" />
@@ -49,7 +51,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 		        	</when>
 		        	<otherwise>
 		        		<logger message="Registration code is not valid!" level="INFO" />
-		        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;Wrong registration code!&quot;}" doc:name="Set Payload"/>
+		        		<set-payload value="{&quot;success&quot;: false, &quot;error_message&quot;: &quot;Wrong registration code!&quot;}" doc:name="Set Payload"/>
 		        	</otherwise>
 		        </choice>
         	</otherwise>
@@ -69,7 +71,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
         	</when>
         	<otherwise>
         		<logger message="User profile is not valid!" level="INFO" />
-        		<set-payload value="{&quot;SUCCESS&quot;: false, &quot;ERROR_MSG&quot;: &quot;User profile is not valid!&quot;}" doc:name="Set Payload"/>
+        		<set-payload value="{&quot;success&quot;: false, &quot;error_message&quot;: &quot;User profile is not valid!&quot;}" doc:name="Set Payload"/>
         	</otherwise>
         </choice>
     </sub-flow>

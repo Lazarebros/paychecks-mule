@@ -65,11 +65,13 @@ CREATE TABLE IF NOT EXISTS user_registrations (
   id bigint(20) NOT NULL AUTO_INCREMENT,
   first_name varchar(64) DEFAULT NULL,
   last_name varchar(64) DEFAULT NULL,
+  profile_id BIGINT(20) NOT NULL,
   enabled char(1) NOT NULL DEFAULT 1,
   code varchar(64) NOT NULL,
   date_created TIMESTAMP NOT NULL DEFAULT now(),
   PRIMARY KEY (id),
-  UNIQUE (first_name,last_name , code)
+  UNIQUE (first_name, last_name, profile_id, code),
+  CONSTRAINT FK_USER_REGISTRATIONS_USER_PROFILES_PROFILE_ID FOREIGN KEY (profile_id) REFERENCES user_profiles (profile_id)
 );
 
 
